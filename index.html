@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mini TeraBox Cloud</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      text-align: center;
+      padding: 30px;
+    }
+    input[type=file], button {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      width: 90%;
+      max-width: 300px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    video {
+      width: 90%;
+      max-width: 600px;
+      margin: 20px auto;
+      display: block;
+    }
+    .file-list a {
+      color: #00f;
+      display: block;
+      margin: 5px 0;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>☁️ Mini TeraBox Cloud</h2>
+  <input type="file" id="fileInput">
+  <button onclick="uploadFile()">Upload</button>
+
+  <div class="file-list" id="fileList"></div>
+
+  <video id="videoPlayer" controls style="display:none;"></video>
+
+  <script type="module">
+    // Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getStorage, ref, uploadBytes, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCYIfVy7bxQG4I4ZLK4KVxt3_qQXChd7iA",
+      authDomain: "your-project-id.firebaseapp.com",
+      projectId: "your-project-id",
+      storageBucket: "your-project-id.appspot.com",
+      messagingSenderId: "your-sender-id",
+      appId: "your-app-id"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const videoPlayer = document.getElementById('videoPlayer');
+
+    async function uploadFile() {
+      const file = fileInput.files[0];
+      if (!file) return alert("Please select a file.");
+      const fileRef = ref(storage, 'uploads/' + file.name);
+      await uploadBytes(fileRef, file);
+      alert("Uploaded: " + file.name);
+      listFiles();
+    }
+
+    async function listFiles() {
+      const listRef = ref(storage, 'uploads/');
+      const res = await listAll(listRef);
+      fileList.innerHTML = "";
+      for (let itemRef of res.items) {
+        const url = await getDownloadURL(itemRef);
+        const link = document.createElement("a");
+        link.href = "#";
+        link.textContent = itemRef.name;
+        link.onclick = () => {
+          if (itemRef.name.endsWith(".mp4")) {
+            videoPlayer.src = url;
+            videoPlayer.style.display = "block";
+          } else {
+            videoPlayer.style.display = "none";
+            window.open(url, "_blank");
+          }
+        };
+        fileList.appendChild(link);
+      }
+    }
+
+    listFiles();
+  </script>
+
+</body>
+</html>
